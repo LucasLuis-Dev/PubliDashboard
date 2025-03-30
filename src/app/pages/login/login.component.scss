@@ -1,0 +1,107 @@
+.login-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 0% 10%;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #ee5522;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='a' gradientUnits='userSpaceOnUse' x1='100' y1='33' x2='100' y2='-3'%3E%3Cstop offset='0' stop-color='%23000' stop-opacity='0'/%3E%3Cstop offset='1' stop-color='%23000' stop-opacity='1'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' gradientUnits='userSpaceOnUse' x1='100' y1='135' x2='100' y2='97'%3E%3Cstop offset='0' stop-color='%23000' stop-opacity='0'/%3E%3Cstop offset='1' stop-color='%23000' stop-opacity='1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg fill='%23d23d09' fill-opacity='0.6'%3E%3Crect x='100' width='100' height='100'/%3E%3Crect y='100' width='100' height='100'/%3E%3C/g%3E%3Cg fill-opacity='0.5'%3E%3Cpolygon fill='url(%23a)' points='100 30 0 0 200 0'/%3E%3Cpolygon fill='url(%23b)' points='100 100 0 130 0 100 200 100 200 130'/%3E%3C/g%3E%3C/svg%3E");
+    
+    background-attachment: fixed;
+
+    & .app-informations-container {
+        display: flex;
+        flex-direction: column;
+        padding: 4.5rem;
+        gap: 1.2rem;
+
+        & h1 {
+            font-size: 4rem;
+            color: white;
+        }
+
+        & p {
+            color: #ffffffe5;
+            font-size: 1.6rem;
+            text-align: justify;
+        }
+
+        span {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            color: white;
+            gap: 1rem;
+            font-size: 1.7rem;
+            font-weight: 500;
+
+            & svg {
+                width: 2rem;
+                fill: white;
+            }
+        }
+    }
+
+    & .u-flex-end {
+        display: flex;
+        justify-content: flex-end;
+        align-items: flex-end;
+        height: 100%;
+    }
+
+    & .form-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        padding: 4rem;
+        width: 75%;
+        height: 80%;
+        background-color: white;
+        border-radius: 1.5rem 1.5rem 0 0;
+
+        & h1 {
+            color: rgb(38, 38, 38);
+        }
+
+        & .input-login {
+            height: 6rem;
+            width: 100%;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            background-color: #6160601c;
+            border: none;
+            font-size: 1.6rem;
+        }
+
+        & .button-login {
+            display: flex;
+            height: 6rem;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 600;
+            font-size: 1.7rem;
+            color: white;
+            padding: 1rem 4rem;
+            width: 100%;
+            border-radius: 1.5rem;
+            border: none;
+            background: #f12711;  /* fallback for old browsers */
+            background: -webkit-linear-gradient(to right, #f5af19, #f12711);  /* Chrome 10-25, Safari 5.1-6 */
+            background: linear-gradient(to right, #f5af19, #f12711); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+
+            cursor: pointer; 
+
+            &.google {
+                background: white;
+                border: .1rem solid rgb(38, 38, 38);
+                color: rgb(38, 38, 38);
+            }
+
+            & img {
+                width: 2rem;
+            }
+        }
+     }
+}
