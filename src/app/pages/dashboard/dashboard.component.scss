@@ -1,0 +1,113 @@
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    padding: 5rem;
+    width: 100%;
+    gap: 2rem;
+
+    & .overview-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+
+        & .overview-title-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2% 0;
+            padding-top: 0%;
+
+            & h3 {
+                font-size: 4rem;
+                color: rgb(38, 38, 38);
+            }
+
+            & .filter-container {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+
+                & span {
+                    color: rgb(38, 38, 38);
+                    font-size: 1.7rem;
+                    font-weight: 600;
+                }
+
+                & .datepicker input {
+                    font-size: 1.6rem !important;
+                    font-weight: 500 !important;
+                }
+            }
+        }
+
+        & .featured-cards-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            justify-content: space-between;
+            gap: 2rem;
+            list-style: none;
+
+            & .card {
+                display: flex;
+                flex-direction: column;
+                gap: 2rem;
+                border-radius: 2rem;
+                padding: 3rem;
+                background-color: #6160601c;
+
+                h4 {
+                    color: rgb(38, 38, 38);
+                }
+            }
+        }
+    }
+
+    & .chart-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        flex-direction: column;
+        gap: 2rem;
+       
+        width: 100%;
+
+        .group-1 {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .group-2 {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            height: 100%;
+            width: 100%;
+        }
+    
+        .chart-box {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            width: 100%;
+            height: 100%;
+            background-color: #6160601c;
+            border-radius: 2rem;
+            padding: 4rem;
+            position: relative;
+
+            & h3 {
+                color: rgb(38, 38, 38);
+            }
+        }
+
+        & .chart-business {
+            width: 100%;
+
+            &.customer-expenses {
+                width: 100%;
+                height: 100%;
+               
+            }
+        }
+    }
+}

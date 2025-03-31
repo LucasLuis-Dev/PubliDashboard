@@ -1,0 +1,57 @@
+<div class="dashboard-container">
+    <div class="overview-container">
+        <div class="overview-title-container">
+            <h3>Overview</h3>
+
+            <div class="filter-container">
+                <span>Filtro:</span>
+                <p-datepicker  styleClass="datepicker" size="large" [showIcon]="true" [(ngModel)]="date" view="month" dateFormat="mm/yy" [readonlyInput]="true" />
+            </div>
+        </div>
+
+        <ul class="featured-cards-container">
+            <li class="card">
+                <h4>Saldo</h4>
+                <p>R$ 7000</p>
+            </li>
+            <li class="card">
+                <h4>Lucro</h4>
+                <p>R$ 7000</p>
+            </li>
+            <li class="card">
+                <h4>Receita Bruta</h4>
+                <p>R$ 7000</p>
+            </li>
+            <li class="card">
+                <h4>Despesas</h4>
+                <p>R$ 7000</p>
+            </li>
+        </ul>
+    </div>
+
+    <div class="chart-container">
+        <div class="group-1">
+            <div class="chart-box">
+                <h3>Receita Bruta Mensal</h3>
+                <p-chart type="bar" class="chart-business" [data]="basicData" [options]="basicOptions" />
+            </div>
+    
+            <div class="chart-box">
+                <h3>Despesas Mensais</h3>
+                <p-chart type="bar" class="chart-business" [data]="basicData" [options]="basicOptions" />
+            </div>
+        </div>
+
+        <div class="group-2">
+            <div class="chart-box">
+                <h3>Custos por Contrato com Clientes</h3>
+                <p-chart type="bar" class="chart-business customer-expenses" [data]="basicData2" [options]="basicOptions2" />
+            </div>
+            <div class="chart-box">
+                <h3>Lucro Mensal</h3>
+                <p-chart type="bar" class="chart-business customer-expenses" [data]="basicData2" [options]="basicOptions2" />
+            </div>
+        </div>
+       
+    </div>
+</div>
