@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { ChartModule } from 'primeng/chart';
 import { DatePickerModule } from 'primeng/datepicker';
 import { FormGroup, FormsModule } from '@angular/forms';
+import { DashboardService } from '../../services/dashboard.service';
 
 
 @Component({
@@ -13,8 +14,80 @@ import { FormGroup, FormsModule } from '@angular/forms';
 })
 export class DashboardComponent {
   date: Date = new Date();
+  receitaBrutaData: any;
+  despesasData: any;
+  custoContratosData: any;
+  lucroMensalData: any;
+  resumoUltimoMes: any;
 
-  formGroup!: FormGroup;
+  constructor(private readonly dashboardService: DashboardService) {}
+
+  ngOnInit() {
+    this.dashboardService.carregarArquivoPadrao().then((response: any) => {
+      this.carregarDados();
+    });
+  }
+  
+
+  carregarDados() {
+    const anoAtual = this.date.getFullYear();
+    const mesAtual = this.date.getMonth() + 1;
+    
+    this.receitaBrutaData = {
+      labels: Array.from({ length: 12 }, (_, i) => `Mês ${i + 1}`),
+      datasets: [
+        {
+          label: 'Receita Bruta (R$)',
+          backgroundColor: '#42A5F5',
+          data: this.dashboardService.getReceitaBrutaGrafico(anoAtual).map(d => d.value)
+        }
+      ]
+    };
+
+    this.despesasData = {
+      labels: this.dashboardService.getDespesasGrafico(mesAtual, anoAtual).map(d => d.name),
+      datasets: [
+        {
+          label: 'Despesas (R$)',
+          backgroundColor: '#FF6384',
+          data: this.dashboardService.getDespesasGrafico(mesAtual, anoAtual).map(d => d.value)
+        }
+      ]
+    };
+
+    this.custoContratosData = {
+      labels: this.dashboardService.getCustoContratosGrafico(mesAtual, anoAtual).map(d => d.name),
+      datasets: [
+        {
+          label: 'Custo por Contrato (R$)',
+          backgroundColor: '#FFCE56',
+          data: this.dashboardService.getCustoContratosGrafico(mesAtual, anoAtual).map(d => d.value)
+        }
+      ]
+    };
+
+    this.lucroMensalData = {
+      labels: [`Lucro ${mesAtual}/${anoAtual}`],
+      datasets: [
+        {
+          label: 'Lucro Mensal (R$)',
+          backgroundColor: '#66BB6A',
+          data: [this.dashboardService.getLucroMensalGrafico(mesAtual, anoAtual).value]
+        }
+      ]
+    };
+
+    this.resumoUltimoMes = this.dashboardService.getResumoUltimoMes();
+  }
+
+  carregarArquivo(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.dashboardService.carregarDadosArquivo(file).then(() => {
+        this.carregarDados();
+      });
+    }
+  }
 
   basicData = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],

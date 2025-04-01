@@ -29,7 +29,8 @@
               {
                 "glob": "**/*",
                 "input": "public"
-              }
+              },
+              "src/database"
             ],
             "styles": [
               "src/styles.scss"
