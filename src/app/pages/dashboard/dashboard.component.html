@@ -12,19 +12,19 @@
         <ul class="featured-cards-container">
             <li class="card">
                 <h4>Saldo</h4>
-                <p>R$ 7000</p>
+                <p>R$ {{ saldoMesSelecionado }}</p>
             </li>
             <li class="card">
                 <h4>Lucro</h4>
-                <p>R$ 7000</p>
+                <p>R$ {{ lucroMesSelecionado }}</p>
             </li>
             <li class="card">
-                <h4>Receita Bruta</h4>
-                <p>R$ 7000</p>
+                <h4>Receita Bruta Mensal</h4>
+                <p>R$ {{receitaBrutaMesSelecionado.valor}}</p>
             </li>
             <li class="card">
                 <h4>Despesas</h4>
-                <p>R$ 7000</p>
+                <p>R$ {{despensasMesSelecionado}}</p>
             </li>
         </ul>
     </div>
@@ -33,23 +33,23 @@
         <div class="group-1">
             <div class="chart-box">
                 <h3>Receita Bruta Mensal</h3>
-                <p-chart type="bar" class="chart-business" [data]="basicData" [options]="basicOptions" />
+                <p-chart type="bar" class="chart-business" [data]="receitaBrutaData" [options]="basicOptions" />
             </div>
     
             <div class="chart-box">
                 <h3>Despesas Mensais</h3>
-                <p-chart type="bar" class="chart-business" [data]="basicData" [options]="basicOptions" />
+                <p-chart type="bar" class="chart-business" [data]="despesasData" [options]="basicOptions" />
             </div>
         </div>
 
         <div class="group-2">
             <div class="chart-box">
                 <h3>Custos por Contrato com Clientes</h3>
-                <p-chart type="bar" class="chart-business customer-expenses" [data]="basicData2" [options]="basicOptions2" />
+                <p-chart type="bar" class="chart-business customer-expenses" [data]="custoContratosData" [options]="basicOptions2" />
             </div>
             <div class="chart-box">
                 <h3>Lucro Mensal</h3>
-                <p-chart type="bar" class="chart-business customer-expenses" [data]="basicData2" [options]="basicOptions2" />
+                <p-chart type="bar" class="chart-business customer-expenses" [data]="lucroMensalData" [options]="basicOptions2" />
             </div>
         </div>
        

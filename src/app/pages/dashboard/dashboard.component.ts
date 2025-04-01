@@ -19,6 +19,10 @@ export class DashboardComponent {
   custoContratosData: any;
   lucroMensalData: any;
   resumoUltimoMes: any;
+  receitaBrutaMesSelecionado: any = 0;
+  despensasMesSelecionado: any = 0;
+  lucroMesSelecionado: any = 0;
+  saldoMesSelecionado: any = 0;
 
   constructor(private readonly dashboardService: DashboardService) {}
 
@@ -30,52 +34,89 @@ export class DashboardComponent {
   
 
   carregarDados() {
-    const anoAtual = this.date.getFullYear();
-    const mesAtual = this.date.getMonth() + 1;
-    
-    this.receitaBrutaData = {
-      labels: Array.from({ length: 12 }, (_, i) => `Mês ${i + 1}`),
-      datasets: [
-        {
-          label: 'Receita Bruta (R$)',
-          backgroundColor: '#42A5F5',
-          data: this.dashboardService.getReceitaBrutaGrafico(anoAtual).map(d => d.value)
-        }
-      ]
-    };
+    const anoAtual = 2023;
+    const mesAtual = 7;
 
-    this.despesasData = {
-      labels: this.dashboardService.getDespesasGrafico(mesAtual, anoAtual).map(d => d.name),
-      datasets: [
-        {
-          label: 'Despesas (R$)',
-          backgroundColor: '#FF6384',
-          data: this.dashboardService.getDespesasGrafico(mesAtual, anoAtual).map(d => d.value)
-        }
-      ]
-    };
+    this.dashboardService.calcularReceitaMensal(mesAtual, anoAtual).subscribe((resultado: any) => {
+      if (resultado) {
+        this.receitaBrutaMesSelecionado = resultado;
+      } else {
+        console.warn('Nenhum dado retornado');
+      }
+    });
 
-    this.custoContratosData = {
-      labels: this.dashboardService.getCustoContratosGrafico(mesAtual, anoAtual).map(d => d.name),
-      datasets: [
-        {
-          label: 'Custo por Contrato (R$)',
-          backgroundColor: '#FFCE56',
-          data: this.dashboardService.getCustoContratosGrafico(mesAtual, anoAtual).map(d => d.value)
-        }
-      ]
-    };
+    this.dashboardService.calcularDespesasMensal(mesAtual, anoAtual).subscribe((resultado: number) => {
+      if (resultado) {
+        this.despensasMesSelecionado = resultado;
+      } else {
+        console.warn('Nenhum dado retornado');
+      }
+    });
 
-    this.lucroMensalData = {
-      labels: [`Lucro ${mesAtual}/${anoAtual}`],
-      datasets: [
-        {
-          label: 'Lucro Mensal (R$)',
-          backgroundColor: '#66BB6A',
-          data: [this.dashboardService.getLucroMensalGrafico(mesAtual, anoAtual).value]
-        }
-      ]
-    };
+    this.dashboardService.calcularLucroMensal(mesAtual, anoAtual).subscribe((resultado: number) => {
+      if (resultado) {
+        this.lucroMesSelecionado = resultado;
+      } else {
+        console.warn('Nenhum dado retornado');
+      }
+    });
+
+    this.dashboardService.calcularSaldoMensal(mesAtual, anoAtual).subscribe((resultado: number) =>{
+      if (resultado) {
+        this.saldoMesSelecionado = resultado;
+      }
+    })
+
+    this.dashboardService.calcularCustoPorCliente(mesAtual, anoAtual).subscribe((resultado: any) =>{
+      if (resultado) {
+        console.log(resultado)
+      }
+    })
+
+    // this.receitaBrutaData = {
+    //   labels: Array.from({ length: 12 }, (_, i) => `Mês ${i + 1}`),
+    //   datasets: [
+    //     {
+    //       label: 'Receita Bruta (R$)',
+    //       backgroundColor: '#42A5F5',
+    //       data: this.dashboardService.getReceitaBrutaMensal(anoAtual, mesAtual)
+    //     }
+    //   ]
+    // };
+    // console.log(this.receitaBrutaData.datasets.data)
+
+    // this.despesasData = {
+    //   labels: this.dashboardService.getDespesasGrafico(mesAtual, anoAtual).map(d => d.name),
+    //   datasets: [
+    //     {
+    //       label: 'Despesas (R$)',
+    //       backgroundColor: '#FF6384',
+    //       data: this.dashboardService.getDespesasGrafico(mesAtual, anoAtual).map(d => d.value)
+    //     }
+    //   ]
+    // };
+
+    // this.custoContratosData = {
+    //   labels: this.dashboardService.getCustoContratosGrafico(mesAtual, anoAtual).map(d => d.name),
+    //   datasets: [
+    //     {
+    //       label: 'Custo por Contrato (R$)',
+    //       backgroundColor: '#FFCE56',
+    //       data: this.dashboardService.getCustoContratosGrafico(mesAtual, anoAtual).map(d => d.value)
+    //     }
+    //   ]
+    // };
+
+    // this.lucroMensalData = {
+    //   labels: [`Lucro ${mesAtual}/${anoAtual}`],
+    //   datasets: [
+    //     {
+    //       label: 'Lucro Mensal (R$)',
+    //       backgroundColor: '#66BB6A',
+    //       data: [this.dashboardService.getLucroMensalGrafico(mesAtual, anoAtual).value]
+    //     }
+    //   ]
+    // };
 
     this.resumoUltimoMes = this.dashboardService.getResumoUltimoMes();
   }
