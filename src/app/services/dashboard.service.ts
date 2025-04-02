@@ -16,28 +16,59 @@ export class DashboardService {
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
   ];
 
+  primeiraDataDisponivel: Date | null = null;
+  ultimaDataDisponivel: Date | null = null;
+
   async carregarDadosArquivo(file: File): Promise<void> {
     try {
       // Lê o arquivo e obtém as linhas diretamente
       const rows = await readXlsxFile(file);
   
+      if (!rows.length) {
+        console.warn("O arquivo está vazio.");
+        return;
+      }
+  
       // Extrai o cabeçalho (primeira linha)
       const cabecalho = rows[0];
   
+      let primeiraData: Date | null = null;
+      let ultimaData: Date | null = null; // Variável para armazenar a última data
+  
       // Mapeia as linhas para objetos com propriedades nomeadas
-      this.transacoes = rows.slice(1).map((row) => {
+      this.transacoes = rows.slice(1).map((row: any) => {
         const transacao: any = {};
         cabecalho.forEach((coluna, index) => {
           const nomePropriedade = String(coluna)
             .replace(/\s+/g, '_')
             .replace(/[^a-zA-Z0-9_]/g, '')
             .toLowerCase();
+  
           transacao[nomePropriedade] = row[index] ?? null;
+  
+          // Verifica se a propriedade atual representa a data
+          if (nomePropriedade.includes("data") && row[index]) {
+            const data = new Date(row[index]);
+  
+            // Se for uma data válida, verifica se é a maior até agora
+            if (!isNaN(data.getTime())) {
+              if (!ultimaData || data > ultimaData) {
+                ultimaData = data;
+              }
+
+              if (!primeiraData || data < primeiraData) {
+                primeiraData = data;
+              }
+            }
+          }
         });
         return transacao;
       });
   
-      console.log('Dados carregados:', this.transacoes);
+      // Salva a última data encontrada
+      this.primeiraDataDisponivel = primeiraData;
+      this.ultimaDataDisponivel = ultimaData;
+  
     } catch (error) {
       console.error('Erro ao ler arquivo:', error);
       throw error;
@@ -72,26 +103,33 @@ export class DashboardService {
     }
   }
 
-  calcularReceitaMensal(mes: number, ano: number): Observable<any> {
+
+  retornarPeriodoDatas() {
+    return {
+      primeiraData: this.primeiraDataDisponivel,
+      ultimaData: this.ultimaDataDisponivel
+    };
+  }
+  calcularReceitaMensal(mes: number, ano: number): Observable<number | string> {
     return new Observable(observer => {
       // Validações
       if (!this.transacoes?.length) {
         console.warn('Nenhuma transação disponível');
-        observer.next(null);
+        observer.next(0);
         observer.complete();
         return;
       }
   
       if (mes < 1 || mes > 12 || isNaN(mes)) {
         console.warn('Mês inválido');
-        observer.next(null);
+        observer.next(0);
         observer.complete();
         return;
       }
   
       if (ano < 2000 || ano > new Date().getFullYear() + 1 || isNaN(ano)) {
         console.warn('Ano inválido');
-        observer.next(null);
+        observer.next(0);
         observer.complete();
         return;
       }
@@ -116,19 +154,13 @@ export class DashboardService {
         }
       }
   
-      observer.next({
-        mes: this.nomesMeses[mes - 1] || `Mês ${mes}`,
-        valor: parseFloat(valorTotal.toFixed(2)),
-        ano,
-        mesNumero: mes,
-        quantidadeTransacoes: transacoesValidas
-      });
+      observer.next(this.formatarParaReal(parseFloat(valorTotal.toFixed(2))));
   
       observer.complete();
     });
   }
 
-  calcularDespesasMensal(mes: number, ano: number): Observable<number> {
+  calcularDespesasMensal(mes: number, ano: number): Observable<number | string> {
     return new Observable(observer => {
       if (!this.transacoes?.length) {
         console.warn('Nenhuma transação disponível');
@@ -168,12 +200,12 @@ export class DashboardService {
         }
       }
 
-      observer.next(parseFloat(totalDespesas.toFixed(2)));
+      observer.next(this.formatarParaReal(parseFloat(totalDespesas.toFixed(2))));
       observer.complete();
     });
   }
 
-  calcularLucroMensal(mes: number, ano: number): Observable<number> {
+  calcularLucroMensal(mes: number, ano: number): Observable<number | string> {
     return new Observable(observer => {
       if (!this.transacoes?.length) {
         console.warn('Nenhuma transação disponível');
@@ -197,6 +229,8 @@ export class DashboardService {
       }
   
       let totalLucro = 0;
+      let receitaTotal = 0;
+      let despesaTotal = 0
   
       for (const transacao of this.transacoes) {
         try {
@@ -207,20 +241,23 @@ export class DashboardService {
   
           if (data.getMonth() + 1 === mes && data.getFullYear() === ano) {
             // Lucro é a diferença entre as entradas e as saídas
-            totalLucro += (Number(transacao.entrada) || 0) - (Number(transacao.saida) || 0);
+            receitaTotal += Number(transacao.entrada) || 0;
+            despesaTotal += Number(transacao.saida) || 0;
           }
         } catch (error) {
           console.error('Erro ao processar transação:', error);
         }
       }
+
+      totalLucro = receitaTotal - despesaTotal;
   
-      observer.next(parseFloat(totalLucro.toFixed(2)));
+      observer.next(this.formatarParaReal(parseFloat(totalLucro.toFixed(2))));
       observer.complete();
     });
   }
 
 
-  calcularSaldoMensal(mes: number, ano: number): Observable<number> {
+  calcularSaldoMensal(mes: number, ano: number): Observable<string | number> {
     return new Observable(observer => {
       if (!this.transacoes?.length) {
         console.warn('Nenhuma transação disponível');
@@ -243,6 +280,10 @@ export class DashboardService {
         return;
       }
   
+      let saldoInicial = 0;
+      let entradasSaldoInicial = 0;
+      let saidasSaldoInicial = 0;
+
       let totalEntradas = 0;
       let totalSaidas = 0;
   
@@ -257,16 +298,21 @@ export class DashboardService {
             // Soma as entradas e as saídas separadamente
             totalEntradas += (Number(transacao.entrada) || 0);
             totalSaidas += (Number(transacao.saida) || 0);
+          } else if (data.getMonth() + 1 === (mes - 1) && data.getFullYear() === ano) {
+            entradasSaldoInicial += (Number(transacao.entrada) || 0);
+            saidasSaldoInicial += (Number(transacao.saida) || 0);
           }
         } catch (error) {
           console.error('Erro ao processar transação:', error);
         }
       }
+
+      saldoInicial = entradasSaldoInicial - saidasSaldoInicial;
   
       // O saldo é a diferença entre entradas e saídas
-      const saldo = totalEntradas - totalSaidas;
+      const saldo = saldoInicial + (totalEntradas - totalSaidas);
       
-      observer.next(parseFloat(saldo.toFixed(2)));
+      observer.next(this.formatarParaReal(Number(saldo.toFixed(2))));
       observer.complete();
     });
   }
@@ -299,7 +345,7 @@ export class DashboardService {
       // Filtra transações para o mês e ano especificados
       for (const transacao of this.transacoes) {
         try {
-          if (!transacao?.data || transacao.saida === undefined) continue;
+          if (!transacao?.data || !transacao.saida) continue;
   
           const data = new Date(transacao.data);
           if (isNaN(data.getTime())) continue;
@@ -334,137 +380,182 @@ export class DashboardService {
   }
 
 
-
-  getReceitaBrutaMensal(mes: number, ano: number): number {
-    // Validação dos parâmetros de entrada
-    if (!this.transacoes || this.transacoes.length === 0) {
-        console.warn('Nenhuma transação disponível para cálculo');
-        return 0;
-    }
-
-    if (isNaN(mes) || mes < 1 || mes > 12) {
-        console.warn(`Mês inválido: ${mes}`);
-        return 0;
-    }
-
-    if (isNaN(ano) || ano < 2000 || ano > new Date().getFullYear() + 1) {
-        console.warn(`Ano inválido: ${ano}`);
-        return 0;
-    }
-
-    try {
-        return this.transacoes
-            .filter(t => {
-                try {
-                    // Verifica se a transação tem data e entrada válidas
-                    if (!t?.Data || !t?.Entrada) return false;
-                    
-                    const dataTransacao = new Date(t.Data);
-                    if (isNaN(dataTransacao.getTime())) return false;
-                    
-                    return (dataTransacao.getMonth() + 1 === mes) && 
-                           (dataTransacao.getFullYear() === ano) && 
-                           (typeof t.Entrada === 'number');
-                } catch (e) {
-                    console.warn('Erro ao processar transação:', t, e);
-                    return false;
-                }
-            })
-            .reduce((acc, t) => {
-                const entrada = Number(t.Entrada) || 0;
-                return acc + entrada;
-            }, 0);
-    } catch (error) {
-        console.error(`Erro ao calcular receita bruta para mês ${mes}, ano ${ano}:`, error);
-        return 0;
-    }
-}
-  getDespesasMensais(mes: number, ano: number): number {
-    return this.transacoes
-      .filter(t => new Date(t.Data).getMonth() + 1 === mes && new Date(t.Data).getFullYear() === ano && t.Saida)
-      .reduce((acc, t) => acc + t.Saida, 0);
-  }
-
-  getCustoPorContrato(cliente: string, mes: number, ano: number): number {
-    return this.transacoes
-      .filter(t => t.Historico.includes(cliente) && new Date(t.Data).getMonth() + 1 === mes && new Date(t.Data).getFullYear() === ano && t.Saida)
-      .reduce((acc, t) => acc + t.Saida, 0);
-  }
-
-  getCustoContratosGrafico(mes: number, ano: number): any[] {
-    // Check if transactions exist
-    if (!this.transacoes || this.transacoes.length === 0) {
-      console.warn('No transactions data available');
-      return [];
-    }
+  obterDespesasDetalhadas(mes: number, ano: number): Observable<{ nomeNatureza: string, valor: number }[]> {
+    return new Observable(observer => {
+      if (!this.transacoes?.length) {
+        console.warn('Nenhuma transação disponível');
+        observer.next([]);
+        observer.complete();
+        return;
+      }
   
-    // Get unique client names safely
-    const clientes = Array.from(
-      new Set(
-        this.transacoes
-          .map(t => t?.Historico) // Safe property access
-          .filter(historico => historico !== undefined && historico !== null) // Remove undefined/null
-      )
-    );
+      if (mes < 1 || mes > 12 || isNaN(mes)) {
+        console.warn('Mês inválido');
+        observer.next([]);
+        observer.complete();
+        return;
+      }
   
-    // Calculate costs with error handling
-    return clientes
-      .map(cliente => {
+      if (ano < 2000 || ano > new Date().getFullYear() + 1 || isNaN(ano)) {
+        console.warn('Ano inválido');
+        observer.next([]);
+        observer.complete();
+        return;
+      }
+  
+      // Objeto para armazenar despesas agrupadas por nome_natureza
+      const despesasAgrupadas: { [key: string]: number } = {};
+  
+      for (const transacao of this.transacoes) {
         try {
-          const value = this.getCustoPorContrato(cliente, mes, ano);
-          return { name: cliente, value: value || 0 }; // Default to 0 if undefined
+          if (!transacao?.data || !transacao.saida || !transacao.nome_natureza) continue;
+  
+          const data = new Date(transacao.data);
+          if (isNaN(data.getTime())) continue;
+  
+          if (data.getMonth() + 1 === mes && data.getFullYear() === ano) {
+            const nomeNatureza = transacao.nome_natureza;
+            const valorSaida = Number(transacao.saida) || 0;
+  
+            // Soma os valores de despesas com o mesmo nome_natureza
+            despesasAgrupadas[nomeNatureza] = (despesasAgrupadas[nomeNatureza] || 0) + valorSaida;
+          }
         } catch (error) {
-          console.error(`Error calculating cost for ${cliente}:`, error);
-          return { name: cliente, value: 0 }; // Return 0 if error occurs
+          console.error('Erro ao processar transação:', error);
         }
-      })
-      .filter(item => item.value > 0); // Only include positive values
-  }
-
-  getDespesasGrafico(mes: number, ano: number): any[] {
-    return this.transacoes
-      .filter(t => new Date(t.Data).getMonth() + 1 === mes && new Date(t.Data).getFullYear() === ano && t.Saida)
-      .map(t => ({
-        name: t.Historico,
-        value: t.Saida
+      }
+  
+      // Converte o objeto agrupado para um array de objetos e emite o resultado
+      const resultado = Object.keys(despesasAgrupadas).map(nomeNatureza => ({
+        nomeNatureza,
+        valor: parseFloat(despesasAgrupadas[nomeNatureza].toFixed(2)) // Formata para 2 casas decimais
       }));
+  
+      observer.next(resultado);
+      observer.complete();
+    });
   }
 
-  getLucroMensalGrafico(mes: number, ano: number): any {
-    const receita = this.getReceitaBrutaMensal(mes, ano);
-    const despesas = this.getDespesasMensais(mes, ano);
-    return {
-      name: `Lucro ${mes}/${ano}`,
-      value: receita - despesas
-    };
+  obterLucroDetalhado(mes: number, ano: number): Observable<{ nomeNatureza: string, valor: number }[]> {
+    return new Observable(observer => {
+      if (!this.transacoes?.length) {
+        console.warn('Nenhuma transação disponível');
+        observer.next([]);
+        observer.complete();
+        return;
+      }
+  
+      if (mes < 1 || mes > 12 || isNaN(mes)) {
+        console.warn('Mês inválido');
+        observer.next([]);
+        observer.complete();
+        return;
+      }
+  
+      if (ano < 2000 || ano > new Date().getFullYear() + 1 || isNaN(ano)) {
+        console.warn('Ano inválido');
+        observer.next([]);
+        observer.complete();
+        return;
+      }
+  
+      // Objeto para armazenar despesas agrupadas por nome_natureza
+      const receitaAgrupada: { [key: string]: number } = {};
+  
+      for (const transacao of this.transacoes) {
+        try {
+          if (!transacao?.data || transacao.entrada === undefined || transacao.saida === undefined || !transacao.nome_natureza) continue;
+  
+          const data = new Date(transacao.data);
+          if (isNaN(data.getTime())) continue;
+  
+          if (data.getMonth() + 1 === mes && data.getFullYear() === ano) {
+            const nomeNatureza = transacao.nome_natureza;
+            const valorSaida = (Number(transacao.entrada) || 0) - (Number(transacao.saida) || 0);;
+  
+            // Soma os valores de despesas com o mesmo nome_natureza
+            receitaAgrupada[nomeNatureza] = (receitaAgrupada[nomeNatureza] || 0) + valorSaida;
+          }
+        } catch (error) {
+          console.error('Erro ao processar transação:', error);
+        }
+      }
+  
+      // Converte o objeto agrupado para um array de objetos e emite o resultado
+      const resultado = Object.keys(receitaAgrupada).map(nomeNatureza => ({
+        nomeNatureza,
+        valor: parseFloat(receitaAgrupada[nomeNatureza].toFixed(2)) // Formata para 2 casas decimais
+      }));
+  
+      observer.next(resultado);
+      observer.complete();
+    });
   }
 
-  getReceitaBrutaGrafico(ano: number, mes: number): any[] {
-    const meses = Array.from({ length: 12 }, (_, i) => i + 1);
-    return meses.map(mes => ({
-      name: `Mês ${mes}`,
-      value: this.getReceitaBrutaMensal(mes, ano)
-    }));
+
+  obterReceitaMensalDetalhada(mes: number, ano: number): Observable<{ nomeNatureza: string, valor: number }[]> {
+    return new Observable(observer => {
+      if (!this.transacoes?.length) {
+        console.warn('Nenhuma transação disponível');
+        observer.next([]);
+        observer.complete();
+        return;
+      }
+  
+      if (mes < 1 || mes > 12 || isNaN(mes)) {
+        console.warn('Mês inválido');
+        observer.next([]);
+        observer.complete();
+        return;
+      }
+  
+      if (ano < 2000 || ano > new Date().getFullYear() + 1 || isNaN(ano)) {
+        console.warn('Ano inválido');
+        observer.next([]);
+        observer.complete();
+        return;
+      }
+  
+      // Objeto para armazenar despesas agrupadas por nome_natureza
+      const receitaAgrupada: { [key: string]: number } = {};
+  
+      for (const transacao of this.transacoes) {
+        try {
+          if (!transacao?.data || !transacao.entrada || !transacao.nome_natureza) continue;
+  
+          const data = new Date(transacao.data);
+          if (isNaN(data.getTime())) continue;
+  
+          if (data.getMonth() + 1 === mes && data.getFullYear() === ano) {
+            const nomeNatureza = transacao.nome_natureza;
+            
+            const valorSaida = Number(transacao.entrada) || 0;
+  
+            // Soma os valores de despesas com o mesmo nome_natureza
+            receitaAgrupada[nomeNatureza] = (receitaAgrupada[nomeNatureza] || 0) + valorSaida;
+          }
+        } catch (error) {
+          console.error('Erro ao processar transação:', error);
+        }
+      }
+  
+      // Converte o objeto agrupado para um array de objetos e emite o resultado
+      const resultado = Object.keys(receitaAgrupada).map(nomeNatureza => ({
+        nomeNatureza,
+        valor: parseFloat(receitaAgrupada[nomeNatureza].toFixed(2)) // Formata para 2 casas decimais
+      }));
+  
+      observer.next(resultado);
+      observer.complete();
+    });
   }
 
-  getResumoUltimoMes(): any {
-    if (this.transacoes.length === 0) return null;
-
-    const ultimaData = new Date(Math.max(...this.transacoes.map(t => new Date(t.Data).getTime())));
-    const ultimoMes = ultimaData.getMonth() + 1;
-    const ultimoAno = ultimaData.getFullYear();
-
-    const receita = this.getReceitaBrutaMensal(ultimoMes, ultimoAno);
-    const despesas = this.getDespesasMensais(ultimoMes, ultimoAno);
-    const lucro = receita - despesas;
-
-    return {
-      mes: ultimoMes,
-      ano: ultimoAno,
-      saldoTotal: receita - despesas,
-      receitaBruta: receita,
-      despesasTotais: despesas,
-      lucro: lucro
-    };
+  formatarParaReal(valor: number): string {
+    return valor.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    });
   }
+  
+  
 }

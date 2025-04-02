@@ -1,57 +1,70 @@
-<div class="dashboard-container">
-    <div class="overview-container">
-        <div class="overview-title-container">
-            <h3>Overview</h3>
-
-            <div class="filter-container">
-                <span>Filtro:</span>
-                <p-datepicker  styleClass="datepicker" size="large" [showIcon]="true" [(ngModel)]="date" view="month" dateFormat="mm/yy" [readonlyInput]="true" />
-            </div>
-        </div>
-
-        <ul class="featured-cards-container">
-            <li class="card">
-                <h4>Saldo</h4>
-                <p>R$ {{ saldoMesSelecionado }}</p>
-            </li>
-            <li class="card">
-                <h4>Lucro</h4>
-                <p>R$ {{ lucroMesSelecionado }}</p>
-            </li>
-            <li class="card">
-                <h4>Receita Bruta Mensal</h4>
-                <p>R$ {{receitaBrutaMesSelecionado.valor}}</p>
-            </li>
-            <li class="card">
-                <h4>Despesas</h4>
-                <p>R$ {{despensasMesSelecionado}}</p>
-            </li>
-        </ul>
-    </div>
-
-    <div class="chart-container">
-        <div class="group-1">
-            <div class="chart-box">
-                <h3>Receita Bruta Mensal</h3>
-                <p-chart type="bar" class="chart-business" [data]="receitaBrutaData" [options]="basicOptions" />
+<div class="dashboard-container" >
+    <app-navbar ></app-navbar>
+    <div class="wrapper">
+        <div class="overview-container">
+            <div class="overview-title-container">
+                <h3>Overview</h3>
+    
+                <div class="filter-container">
+                    <span>Filtro:</span>
+                    <p-datepicker  styleClass="datepicker" [minDate]="primeiraDataDisponivel" [maxDate]="ultimaDataDisponivel"  size="large" [showIcon]="true" [(ngModel)]="date" (ngModelChange)="onDateChange($event)" view="month" dateFormat="mm/yy" [readonlyInput]="true" />
+                </div>
             </div>
     
-            <div class="chart-box">
-                <h3>Despesas Mensais</h3>
-                <p-chart type="bar" class="chart-business" [data]="despesasData" [options]="basicOptions" />
-            </div>
+            <ul class="featured-cards-container">
+                <li class="card">
+                    <h4>Saldo</h4>
+                    <p [ngClass]="{ 'positive-value': !saldoMesSelecionado.includes('-'), 'negative-value': saldoMesSelecionado.includes('-') }">
+                        {{ saldoMesSelecionado }}
+                    </p>
+                </li>
+                <li class="card">
+                    <h4>Lucro</h4>
+                    <p [ngClass]="{ 'positive-value': !lucroMesSelecionado.includes('-'), 'negative-value': lucroMesSelecionado.includes('-') }">
+                        {{ lucroMesSelecionado }}
+                    </p>
+                </li>
+                <li class="card">
+                    <h4>Receita Bruta Mensal</h4>
+                    <p [ngClass]="{ 'positive-value': !receitaBrutaMesSelecionado.includes('-'), 'negative-value': receitaBrutaMesSelecionado.includes('-') }">
+                        {{receitaBrutaMesSelecionado}}
+                    </p>
+                </li>
+                <li class="card">
+                    <h4>Despesas</h4>
+                    <p [ngClass]="{ 'positive-value': !despensasMesSelecionado.includes('-'), 'negative-value': despensasMesSelecionado.includes('-') }">
+                        {{despensasMesSelecionado}}
+                    </p>
+                </li>
+            </ul>
         </div>
-
-        <div class="group-2">
-            <div class="chart-box">
-                <h3>Custos por Contrato com Clientes</h3>
-                <p-chart type="bar" class="chart-business customer-expenses" [data]="custoContratosData" [options]="basicOptions2" />
+    
+        <div class="chart-container">
+            <div class="group-1">
+                <div class="chart-box">
+                    <h3>Receita Bruta Mensal</h3>
+                    <p-chart type="bar" class="chart-business" [data]="receitaBrutaData"/>
+                </div>
+                <div class="chart-box">
+                    <h3>Custos por Contrato com Clientes</h3>
+                    <p-chart type="doughnut" class="chart-business customer-expenses" [data]="custoContratosPorCliente" [options]="doughnutOptions" />
+                </div>
             </div>
-            <div class="chart-box">
-                <h3>Lucro Mensal</h3>
-                <p-chart type="bar" class="chart-business customer-expenses" [data]="lucroMensalData" [options]="basicOptions2" />
+    
+            <div class="group-2">
+               
+    
+                <div class="chart-box">
+                    <h3>Despesas Mensais</h3>
+                    <p-chart type="doughnut" class="chart-business" [data]="despesasData" [options]="doughnutOptions" />
+                </div>
+                <div class="chart-box">
+                    <h3>Lucro e Prejuizo Mensal</h3>
+                    <p-chart type="bar" class="chart-business customer-expenses" [data]="lucroMensalData"  />
+                </div>
             </div>
+           
         </div>
-       
     </div>
+    
 </div>
