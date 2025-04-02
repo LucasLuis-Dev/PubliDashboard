@@ -75,6 +75,10 @@ export class DashboardService {
     }
   }
 
+  obterTransacoes() {
+    return this.transacoes || [];
+  }
+
   async carregarArquivoPadrao(): Promise<void> {
     try {
       // 1. Busca o arquivo padrão como Blob
@@ -353,15 +357,47 @@ export class DashboardService {
           // Verifica se a transação pertence ao mês e ano informados
           if (data.getMonth() + 1 === mes && data.getFullYear() === ano) {
 
+            const saidasContratosClientes = [
+              "AUDITORIA",
+              "CONSULTORIA",
+              "ASSESSORIA JURIDICA",
+              "ASSESSORIA CONTABIL",
+              "SERVICOS INFORMATICA",
+              "SERVICOS SEGURANCA",
+              "SERVICOS DE ENTREGA",
+              "FRETES E CARRETOS",
+              "SERVICOS DE PUBLICIDADE E PROP",
+              "SERVICO DE DIVULGACAO",
+              "VIAGENS E ESTADIAS",
+              "REEMBOLSOS",
+              "TAXAS E CUSTAS PROCESSUAIS",
+              "LICENCA DE USO",
+              "COMISSOES",
+              "BRINDES E PRESENTES",
+              "MULTAS COMPENSATORIAS POR ATRA",
+              "MULTAS CONTRATUAIS PASSIVAS",
+              "SALARIOS E ORDENADOS",
+              "CURSOS E TREINAMENTOS",
+              "IRRF SERVICOS",
+              "ISS",
+              "ISS RETIDO NA FONTE",
+              "MARKETING DIRETO",
+              "CONSULTORIA EM PUBLICIDADE"
+            ];
+
             // O nome do cliente pode ser o "Nome Natureza" ou outro campo
             const nomeCliente = transacao.nome_natureza || 'Cliente desconhecido';
-  
-            // Acumula o custo para o cliente
-            if (!custosPorCliente[nomeCliente]) {
-              custosPorCliente[nomeCliente] = 0;
+
+            if (saidasContratosClientes.includes(nomeCliente)) {
+              // Acumula o custo para o cliente
+              if (!custosPorCliente[nomeCliente]) {
+                custosPorCliente[nomeCliente] = 0;
+              }
+
+              custosPorCliente[nomeCliente] += (Number(transacao.saida) || 0);
             }
   
-            custosPorCliente[nomeCliente] += (Number(transacao.saida) || 0);
+            
           }
         } catch (error) {
           console.error('Erro ao processar transação:', error);

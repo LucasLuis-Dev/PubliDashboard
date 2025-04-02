@@ -1,25 +1,80 @@
 .navbar-container {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     background-color: #6160601c;
+    border: .1rem solid #CCC;
     border-radius: 3rem;
-    padding: 3rem;
+    padding: 2rem;
     width: 100%;
     height: 100%;
+    position: relative;
 
-    .expand-menu-button {
+    .icon-user {
+        padding-bottom: 1rem;
+        border-bottom: .1rem solid #ccc;
+    }
+
+    .navbar-navegate-container {
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 1rem;
-        
-        border-radius: 1rem;
-        background-color: #2020207f;
+        padding: 1rem 0rem;
+        gap: 1rem;
+        width: 100%;
 
-        svg {
-            width: 3rem;
+        button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            width: 4rem;
+            height: 4rem;
+            border: .1rem solid #ccc;
+            border-radius: .5rem;
+            padding: .5rem;
+            cursor: pointer;
+            transition: all .2s;
+
+            &.active {
+                background: linear-gradient(to right, #f5af19, #ee5522); 
+
+                & svg {
+                    fill: white;
+                }
+            }
+
+             & svg {
+                width: 2rem;
+                fill: #838383;
+             }
+        }
+    }
+
+    .tooltip {
+        font-size: 1.3rem !important;
+    }
+
+    .github-box {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: absolute;
+        bottom: 2rem;
+        padding-top: 1rem;
+        border-top: .1rem solid #ccc;
+        cursor: pointer;
+
+        & svg {
+            width: 4rem;
+            transition: all .2s;
+
+
+            &:hover {
+                transform: scale(1.1);
+            }
         }
     }
 }

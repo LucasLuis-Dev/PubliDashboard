@@ -1,7 +1,7 @@
 .dashboard-container {
     display: grid;
     grid-template-columns: 5% 1fr;
-    padding: 3rem;
+    padding: 2%;
     width: 100%;
     gap: 2rem;
     animation: all .2s;
@@ -10,7 +10,7 @@
         display: flex;
         flex-direction: column;
         gap: 2rem;
-        padding: 0rem 3rem;
+        padding: 0rem 2rem;
         background-color: white;
         border-radius: 3rem;
         width: 100%;
@@ -29,7 +29,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 2% 0;
+            padding: 1% 0;
             padding-top: 0%;
 
             & h3 {
@@ -44,7 +44,7 @@
 
                 & span {
                     color: rgb(38, 38, 38);
-                    font-size: 1.7rem;
+                    font-size: 1.5rem;
                     font-weight: 600;
                 }
 
@@ -69,6 +69,7 @@
                 border-radius: 2rem;
                 padding: 3rem;
                 background-color: #6160601c;
+                border: .1rem solid #CCC;
 
                 h4 {
                     font-size: 2rem;
@@ -127,6 +128,7 @@
             width: 100%;
             height: 100%;
             background-color: #6160601c;
+            border: .1rem solid #CCC;
             border-radius: 2rem;
             padding: 4rem;
             position: relative;

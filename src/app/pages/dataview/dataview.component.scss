@@ -1,0 +1,27 @@
+.dataview-container {
+    display: grid;
+    grid-template-columns: 5% 1fr;
+    padding: 2%;
+    min-height: 100vh;
+    width: 100%;
+    gap: 2rem;
+    animation: all .2s;
+
+    .wrapper {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+        gap: 2rem;
+        padding: 0rem 2rem;
+        animation: all .2s;
+    }
+
+    .table-view {
+        padding: 2rem;
+        border: .1rem solid #CCC;
+        background-color: #6160601c;
+        border-radius: 2rem;
+    }
+
+}

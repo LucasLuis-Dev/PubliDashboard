@@ -1,0 +1,77 @@
+
+
+.footer {
+    &-container {
+        background-color: white;
+        padding: 5%;
+        color: rgb(38, 38, 38);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 5rem;
+    }
+
+    &-company-information {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        width: 80%;
+
+        &-logo {
+            font-size: 2.5rem;
+            color: #ee5522;
+        }
+    }
+
+    &-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+
+        &-page, &-region, &-help {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+
+            & h4 {
+                color: #ee5522;
+                font-weight: 700;
+            }
+            & a {
+                color: rgb(38, 38, 38);
+                text-decoration: none;
+            }
+        }
+    }
+
+
+    &-container.dashboard-footer {
+        background-color: #ee5522;
+        color: white;
+
+        & .footer-company-information {
+            &-logo {
+                font-size: 2.5rem;
+                color: white;
+            }
+        }
+
+        & .footer-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+    
+            &-page, &-region, &-help {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+    
+                & h4 {
+                    color: white;
+                    font-weight: 700;
+                }
+                & a {
+                    color: white;
+                    text-decoration: none;
+                }
+            }
+        }
+    }
+}

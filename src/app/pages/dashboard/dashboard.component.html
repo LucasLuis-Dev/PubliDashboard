@@ -6,8 +6,13 @@
                 <h3>Overview</h3>
     
                 <div class="filter-container">
-                    <span>Filtro:</span>
-                    <p-datepicker  styleClass="datepicker" [minDate]="primeiraDataDisponivel" [maxDate]="ultimaDataDisponivel"  size="large" [showIcon]="true" [(ngModel)]="date" (ngModelChange)="onDateChange($event)" view="month" dateFormat="mm/yy" [readonlyInput]="true" />
+                    <span>Filtro por Mês:</span>
+                    <p-datepicker  styleClass="datepicker" [minDate]="primeiraDataDisponivel" [maxDate]="ultimaDataDisponivel"  size="large" [showIcon]="true" [(ngModel)]="date" (ngModelChange)="onDateChange($event)" view="month" dateFormat="mm/yy" [readonlyInput]="true"  
+                    [inputStyle]="{ 
+                        'padding': '7px', 
+                        'font-size': '16px', 
+                        'border': '1px solid #ccc'
+                      }"  />
                 </div>
             </div>
     
