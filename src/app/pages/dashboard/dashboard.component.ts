@@ -19,11 +19,13 @@ export class DashboardComponent {
   receitaBrutaData: any;
   despesasData: any;
   lucroMensalData: any;
+  custoMensalData: any;
   resumoUltimoMes: any;
   receitaBrutaMesSelecionado: any = 0;
   despensasMesSelecionado: any = 0;
   lucroMesSelecionado: any = 0;
   saldoMesSelecionado: any = 0;
+  custosMesSelecionado: any = 0;
   primeiraDataDisponivel: Date | null = null;
   ultimaDataDisponivel: Date | null = null;
   custoContratosPorCliente: any;
@@ -39,6 +41,18 @@ export class DashboardComponent {
     maintainAspectRatio: true,
     cutout: '60%', // Define o tamanho do "buraco" do donut
     aspectRatio: 2 
+};
+
+doughnutOptions2 = {
+  plugins: {
+      legend: {
+          position: 'bottom'
+      }
+  },
+  responsive: true,
+  maintainAspectRatio: false,
+  cutout: '60%', // Define o tamanho do "buraco" do donut
+  aspectRatio: .8 
 };
 
 pieOptions = {
@@ -135,6 +149,14 @@ pieOptions = {
       }
     });
 
+    this.dashboardService.calcularCustoMensal(mesSelecionado, anoSelecionado).subscribe((resultado: number | string) => {
+      if (resultado) {
+        this.custosMesSelecionado = resultado;
+      } else {
+        console.warn('Nenhum dado retornado');
+      }
+    });
+
     this.dashboardService.calcularLucroMensal(mesSelecionado, anoSelecionado).subscribe((resultado: number | string) => {
       if (resultado) {
         this.lucroMesSelecionado = resultado;
@@ -158,6 +180,12 @@ pieOptions = {
     this.dashboardService.obterDespesasDetalhadas(mesSelecionado, anoSelecionado).subscribe((resultado: any) =>{
       if (resultado) {
         this.mapearDespesasNoMes(resultado);
+      }
+    })
+
+    this.dashboardService.obterCustosDetalhadas(mesSelecionado, anoSelecionado).subscribe((resultado: any) =>{
+      if (resultado) {
+        this.mapearCustosNoMes(resultado);
       }
     })
 
@@ -196,6 +224,22 @@ pieOptions = {
       datasets: [
         {
           label: 'Despesas',
+          data: dados.map((item: any) => item.valor), // Valores de custo
+          backgroundColor: [
+            "#42A5F5", "#66BB6A", "#FFA726", "#AB47BC", "#26A69A", 
+            "#FF7043", "#EC407A", "#7E57C2", "#D4E157", "#FFCA28"
+          ]
+        }
+      ]
+    };
+  }
+
+  mapearCustosNoMes(dados: any) {
+    this.custoMensalData = {
+      labels: dados.map((item: any) => item.nomeNatureza), // Nomes dos clientes
+      datasets: [
+        {
+          label: 'Custos',
           data: dados.map((item: any) => item.valor), // Valores de custo
           backgroundColor: [
             "#42A5F5", "#66BB6A", "#FFA726", "#AB47BC", "#26A69A", 

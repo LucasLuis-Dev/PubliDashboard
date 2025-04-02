@@ -188,16 +188,76 @@ export class DashboardService {
       }
 
       let totalDespesas = 0;
+      const despesasNaoCustos = [
+        // ===== DESPESAS ADMINISTRATIVAS (21102) =====
+        "VIAGENS E ESTADIAS",
+        "CONDUCAO E TRANSPORTE",
+        "LANCHES E REFEICOES",
+        "CONFRATERNIZACAO",
+        "BENS DE PEQUENO VALOR",
+        "CORREIOS E MALOTES",
+        "FOTOCOPIAS E REPRODUCOES",
+        "ASSINATURAS DE JORNAIS E REVIS",
+        "EMOLUMENTOS CARTORIOS",
+        "CERTIFICADO DIGITAL",
+        "REEMBOLSOS",
+        "OUTRAS DESPESAS",
+      
+        // ===== DESPESAS GERAIS (21103) =====
+        "ALUGUEL DE IMOVEIS",
+        "ALUGUEL DE VEICULOS",
+        "ENERGIA ELETRICA",
+        "AGUA E ESGOTO",
+        "TELEFONIA FIXA",
+        "TELEFONIA MOVEL",
+        "INTERNET",
+        "CONDOMINIO",
+        "MATERIAL DE COPA E COZINHA",
+        "MATERIAL DE EXPEDIENTE",
+        "MATERIAL DE HIGIENE E LIMPEZA",
+      
+        // ===== DESPESAS COM PESSOAL (21104 - não alocadas a produção) =====
+        "VALE REFEICAO ALIMENTACAO",
+        "ASSISTENCIA MEDICA",
+        "ASSISTENCIA ODONTOLOGICA",
+        "SEGURO DE VIDA EM GRUPO",
+        "AUXILIO CRECHE",
+        "AUXILIO EDUCACAO",
+        "PREVIDENCIA PRIVADA",
+        "BOLSA DE ESTAGIARIOS",
+        "VALE TRANSPORTE",
+      
+        // ===== DESPESAS COM DIRIGENTES (21105) =====
+        "LUCRO DISTRIBUIDO - CARLOS HEN",
+        "LUCRO DISTRIBUIDO - MATEUS MAC",
+        "ADIANT. DE LUCRO - CARLOS HENR",
+        "ADIANT. DE LUCRO - MATEUS MACI",
+        "LUCRO DISTRIBUIDO - MANOEL VIR",
+        "ADIANT. DE LUCRO - MANOEL VIRG",
+      
+        // ===== TRIBUTOS NÃO OPERACIONAIS (21107/21108/21109) =====
+        "IPTU IMP PREDIAL TERRIT URBANO",
+        "TAXAS DE BOMBEIRO",
+        "ALVARA DE LOCALIZACAO",
+      
+        // ===== DESPESAS FINANCEIRAS (21201) =====
+        "DESPESAS DE JUROS",
+      
+        // ===== DESPESAS NÃO OPERACIONAIS (299) =====
+        "INDENIZACOES PAGAS"
+      ];
 
       for (const transacao of this.transacoes) {
         try {
-          if (!transacao?.data || transacao.saida === undefined) continue;
+          if (!transacao?.data || transacao.saida === undefined || !transacao.nome_natureza) continue;
 
           const data = new Date(transacao.data);
           if (isNaN(data.getTime())) continue;
 
-          if (data.getMonth() + 1 === mes && data.getFullYear() === ano) {
-            totalDespesas += Number(transacao.saida) || 0;
+          if (despesasNaoCustos.includes(transacao.nome_natureza)) {
+            if (data.getMonth() + 1 === mes && data.getFullYear() === ano) {
+              totalDespesas += Number(transacao.saida) || 0;
+            }
           }
         } catch (error) {
           console.error('Erro ao processar transação:', error);
@@ -208,6 +268,113 @@ export class DashboardService {
       observer.complete();
     });
   }
+
+  calcularCustoMensal(mes: number, ano: number): Observable<number | string> {
+    return new Observable(observer => {
+      if (!this.transacoes?.length) {
+        console.warn('Nenhuma transação disponível');
+        observer.next(0);
+        observer.complete();
+        return;
+      }
+
+      if (mes < 1 || mes > 12 || isNaN(mes)) {
+        console.warn('Mês inválido');
+        observer.next(0);
+        observer.complete();
+        return;
+      }
+
+      if (ano < 2000 || ano > new Date().getFullYear() + 1 || isNaN(ano)) {
+        console.warn('Ano inválido');
+        observer.next(0);
+        observer.complete();
+        return;
+      }
+
+      let totalCustos = 0;
+      const custos = [
+        // ===== SERVIÇOS PRESTADOS (21101) =====
+        "AUDITORIA",
+        "CONSULTORIA",
+        "ASSESSORIA JURIDICA",
+        "ASSESSORIA CONTABIL",
+        "SERVICOS INFORMATICA",
+        "SERVICOS SEGURANCA",
+        "SERVICOS LIMPEZA E CONSERVACAO",
+        "SERVICOS SEGURANCA DO TRABALHO",
+        "SERVICOS GRAFICOS",
+        "SERVICOS DE ENTREGA",
+        "FRETES E CARRETOS",
+        "SERVICOS DE PUBLICIDADE E PROP",
+        "SERVICO DE DIVULGACAO",
+        "SERVICO FORNECIMENTO DE DADOS",
+        "SERVICOS DEDETIZACAO",
+      
+        // ===== MÃO DE OBRA DIRETA (21104) =====
+        "SALARIOS E ORDENADOS",
+        "HORA EXTRA 50%",
+        "HORA EXTRA 100%",
+        "COMISSOES",
+        "FARDAMENTO",
+        "ALUGUEL DE IMOVEIS",
+        "CONDOMINIO",
+        "EXAMES MEDICOS", // (se vinculados à equipe operacional)
+      
+        // ===== MATERIAIS/REFORMAS (21106) =====
+        "MATERIAL DE REFORMAS",
+        "SERV DE REFORMAS",
+        "MATERIAL DE MANUTENCAO",
+        "SERV DE MANUTENCAO",
+      
+        // ===== TRIBUTOS SOBRE OPERAÇÕES (21107/21109) =====
+        "ISS",
+        "ISS RETIDO NA FONTE",
+        "IRRF SERVICOS",
+        "PIS",
+        "COFINS",
+        "IRPJ",
+        "CSLL",
+      
+        // ===== DESPESAS COMERCIAIS (21111) =====
+        "COMISSOES",
+        "BRINDES E PRESENTES",
+      
+        // ===== MULTAS CONTRATUAIS (21110) =====
+        "MULTAS COMPENSATORIAS POR ATRA",
+        "MULTAS CONTRATUAIS PASSIVAS",
+      
+        // ===== LICENÇAS/SOFTWARES OPERACIONAIS (21103) =====
+        "LICENCA DE USO",
+        "HOSPEDAGEM DE DOMINIO",
+        "SOFTWARES",
+      
+        // ===== PRO LABORE (21105 - se vinculado a atividades operacionais) =====
+        "PRO LABORE"
+      ];
+
+      for (const transacao of this.transacoes) {
+        try {
+          if (!transacao?.data || transacao.saida === undefined || !transacao.nome_natureza) continue;
+
+          const data = new Date(transacao.data);
+          if (isNaN(data.getTime())) continue;
+
+          if (custos.includes(transacao.nome_natureza)) {
+            if (data.getMonth() + 1 === mes && data.getFullYear() === ano) {
+              totalCustos += Number(transacao.saida) || 0;
+            }
+          }
+        } catch (error) {
+          console.error('Erro ao processar transação:', error);
+        }
+      }
+
+      observer.next(this.formatarParaReal(parseFloat(totalCustos.toFixed(2))));
+      observer.complete();
+    });
+  }
+
 
   calcularLucroMensal(mes: number, ano: number): Observable<number | string> {
     return new Observable(observer => {
@@ -235,19 +402,140 @@ export class DashboardService {
       let totalLucro = 0;
       let receitaTotal = 0;
       let despesaTotal = 0
+
+      const despesas = [
+        // ===== DESPESAS ADMINISTRATIVAS (21102) =====
+        "VIAGENS E ESTADIAS",
+        "CONDUCAO E TRANSPORTE",
+        "LANCHES E REFEICOES",
+        "CONFRATERNIZACAO",
+        "BENS DE PEQUENO VALOR",
+        "CORREIOS E MALOTES",
+        "FOTOCOPIAS E REPRODUCOES",
+        "ASSINATURAS DE JORNAIS E REVIS",
+        "EMOLUMENTOS CARTORIOS",
+        "CERTIFICADO DIGITAL",
+        "REEMBOLSOS",
+        "OUTRAS DESPESAS",
+      
+        // ===== DESPESAS GERAIS (21103) =====
+        "ALUGUEL DE IMOVEIS",
+        "ALUGUEL DE VEICULOS",
+        "ENERGIA ELETRICA",
+        "AGUA E ESGOTO",
+        "TELEFONIA FIXA",
+        "TELEFONIA MOVEL",
+        "INTERNET",
+        "CONDOMINIO",
+        "MATERIAL DE COPA E COZINHA",
+        "MATERIAL DE EXPEDIENTE",
+        "MATERIAL DE HIGIENE E LIMPEZA",
+      
+        // ===== DESPESAS COM PESSOAL (21104 - não alocadas a produção) =====
+        "VALE REFEICAO ALIMENTACAO",
+        "ASSISTENCIA MEDICA",
+        "ASSISTENCIA ODONTOLOGICA",
+        "SEGURO DE VIDA EM GRUPO",
+        "AUXILIO CRECHE",
+        "AUXILIO EDUCACAO",
+        "PREVIDENCIA PRIVADA",
+        "BOLSA DE ESTAGIARIOS",
+        "VALE TRANSPORTE",
+      
+        // ===== DESPESAS COM DIRIGENTES (21105) =====
+        "LUCRO DISTRIBUIDO - CARLOS HEN",
+        "LUCRO DISTRIBUIDO - MATEUS MAC",
+        "ADIANT. DE LUCRO - CARLOS HENR",
+        "ADIANT. DE LUCRO - MATEUS MACI",
+        "LUCRO DISTRIBUIDO - MANOEL VIR",
+        "ADIANT. DE LUCRO - MANOEL VIRG",
+      
+        // ===== TRIBUTOS NÃO OPERACIONAIS (21107/21108/21109) =====
+        "IPTU IMP PREDIAL TERRIT URBANO",
+        "TAXAS DE BOMBEIRO",
+        "ALVARA DE LOCALIZACAO",
+      
+        // ===== DESPESAS FINANCEIRAS (21201) =====
+        "DESPESAS DE JUROS",
+      
+        // ===== DESPESAS NÃO OPERACIONAIS (299) =====
+        "INDENIZACOES PAGAS",
+
+        // ===== SERVIÇOS PRESTADOS (21101) =====
+        "AUDITORIA",
+        "CONSULTORIA",
+        "ASSESSORIA JURIDICA",
+        "ASSESSORIA CONTABIL",
+        "SERVICOS INFORMATICA",
+        "SERVICOS SEGURANCA",
+        "SERVICOS LIMPEZA E CONSERVACAO",
+        "SERVICOS SEGURANCA DO TRABALHO",
+        "SERVICOS GRAFICOS",
+        "SERVICOS DE ENTREGA",
+        "FRETES E CARRETOS",
+        "SERVICOS DE PUBLICIDADE E PROP",
+        "SERVICO DE DIVULGACAO",
+        "SERVICO FORNECIMENTO DE DADOS",
+        "SERVICOS DEDETIZACAO",
+      
+        // ===== MÃO DE OBRA DIRETA (21104) =====
+        "SALARIOS E ORDENADOS",
+        "HORA EXTRA 50%",
+        "HORA EXTRA 100%",
+        "COMISSOES",
+        "FARDAMENTO",
+        "ALUGUEL DE IMOVEIS",
+        "CONDOMINIO",
+        "EXAMES MEDICOS", // (se vinculados à equipe operacional)
+      
+        // ===== MATERIAIS/REFORMAS (21106) =====
+        "MATERIAL DE REFORMAS",
+        "SERV DE REFORMAS",
+        "MATERIAL DE MANUTENCAO",
+        "SERV DE MANUTENCAO",
+      
+        // ===== TRIBUTOS SOBRE OPERAÇÕES (21107/21109) =====
+        "ISS",
+        "ISS RETIDO NA FONTE",
+        "IRRF SERVICOS",
+        "PIS",
+        "COFINS",
+        "IRPJ",
+        "CSLL",
+      
+        // ===== DESPESAS COMERCIAIS (21111) =====
+        "COMISSOES",
+        "BRINDES E PRESENTES",
+      
+        // ===== MULTAS CONTRATUAIS (21110) =====
+        "MULTAS COMPENSATORIAS POR ATRA",
+        "MULTAS CONTRATUAIS PASSIVAS",
+      
+        // ===== LICENÇAS/SOFTWARES OPERACIONAIS (21103) =====
+        "LICENCA DE USO",
+        "HOSPEDAGEM DE DOMINIO",
+        "SOFTWARES",
+      
+        // ===== PRO LABORE (21105 - se vinculado a atividades operacionais) =====
+        "PRO LABORE"
+      ];
   
       for (const transacao of this.transacoes) {
         try {
-          if (!transacao?.data || transacao.entrada === undefined || transacao.saida === undefined) continue;
+          if (!transacao?.data || transacao.entrada === undefined || transacao.saida === undefined || !transacao.nome_natureza) continue;
   
           const data = new Date(transacao.data);
           if (isNaN(data.getTime())) continue;
-  
-          if (data.getMonth() + 1 === mes && data.getFullYear() === ano) {
-            // Lucro é a diferença entre as entradas e as saídas
-            receitaTotal += Number(transacao.entrada) || 0;
-            despesaTotal += Number(transacao.saida) || 0;
-          }
+
+        
+            if (data.getMonth() + 1 === mes && data.getFullYear() === ano) {
+              // Lucro é a diferença entre as entradas e as saídas
+              receitaTotal += Number(transacao.entrada) || 0;
+
+              if (despesas.includes(transacao.nome_natureza)) { 
+                despesaTotal += Number(transacao.saida) || 0;
+              }
+            }
         } catch (error) {
           console.error('Erro ao processar transação:', error);
         }
@@ -290,10 +578,127 @@ export class DashboardService {
 
       let totalEntradas = 0;
       let totalSaidas = 0;
+
+      const despesas = [
+        // ===== DESPESAS ADMINISTRATIVAS (21102) =====
+        "VIAGENS E ESTADIAS",
+        "CONDUCAO E TRANSPORTE",
+        "LANCHES E REFEICOES",
+        "CONFRATERNIZACAO",
+        "BENS DE PEQUENO VALOR",
+        "CORREIOS E MALOTES",
+        "FOTOCOPIAS E REPRODUCOES",
+        "ASSINATURAS DE JORNAIS E REVIS",
+        "EMOLUMENTOS CARTORIOS",
+        "CERTIFICADO DIGITAL",
+        "REEMBOLSOS",
+        "OUTRAS DESPESAS",
+      
+        // ===== DESPESAS GERAIS (21103) =====
+        "ALUGUEL DE IMOVEIS",
+        "ALUGUEL DE VEICULOS",
+        "ENERGIA ELETRICA",
+        "AGUA E ESGOTO",
+        "TELEFONIA FIXA",
+        "TELEFONIA MOVEL",
+        "INTERNET",
+        "CONDOMINIO",
+        "MATERIAL DE COPA E COZINHA",
+        "MATERIAL DE EXPEDIENTE",
+        "MATERIAL DE HIGIENE E LIMPEZA",
+      
+        // ===== DESPESAS COM PESSOAL (21104 - não alocadas a produção) =====
+        "VALE REFEICAO ALIMENTACAO",
+        "ASSISTENCIA MEDICA",
+        "ASSISTENCIA ODONTOLOGICA",
+        "SEGURO DE VIDA EM GRUPO",
+        "AUXILIO CRECHE",
+        "AUXILIO EDUCACAO",
+        "PREVIDENCIA PRIVADA",
+        "BOLSA DE ESTAGIARIOS",
+        "VALE TRANSPORTE",
+      
+        // ===== DESPESAS COM DIRIGENTES (21105) =====
+        "LUCRO DISTRIBUIDO - CARLOS HEN",
+        "LUCRO DISTRIBUIDO - MATEUS MAC",
+        "ADIANT. DE LUCRO - CARLOS HENR",
+        "ADIANT. DE LUCRO - MATEUS MACI",
+        "LUCRO DISTRIBUIDO - MANOEL VIR",
+        "ADIANT. DE LUCRO - MANOEL VIRG",
+      
+        // ===== TRIBUTOS NÃO OPERACIONAIS (21107/21108/21109) =====
+        "IPTU IMP PREDIAL TERRIT URBANO",
+        "TAXAS DE BOMBEIRO",
+        "ALVARA DE LOCALIZACAO",
+      
+        // ===== DESPESAS FINANCEIRAS (21201) =====
+        "DESPESAS DE JUROS",
+      
+        // ===== DESPESAS NÃO OPERACIONAIS (299) =====
+        "INDENIZACOES PAGAS",
+
+        // ===== SERVIÇOS PRESTADOS (21101) =====
+        "AUDITORIA",
+        "CONSULTORIA",
+        "ASSESSORIA JURIDICA",
+        "ASSESSORIA CONTABIL",
+        "SERVICOS INFORMATICA",
+        "SERVICOS SEGURANCA",
+        "SERVICOS LIMPEZA E CONSERVACAO",
+        "SERVICOS SEGURANCA DO TRABALHO",
+        "SERVICOS GRAFICOS",
+        "SERVICOS DE ENTREGA",
+        "FRETES E CARRETOS",
+        "SERVICOS DE PUBLICIDADE E PROP",
+        "SERVICO DE DIVULGACAO",
+        "SERVICO FORNECIMENTO DE DADOS",
+        "SERVICOS DEDETIZACAO",
+      
+        // ===== MÃO DE OBRA DIRETA (21104) =====
+        "SALARIOS E ORDENADOS",
+        "HORA EXTRA 50%",
+        "HORA EXTRA 100%",
+        "COMISSOES",
+        "FARDAMENTO",
+        "ALUGUEL DE IMOVEIS",
+        "CONDOMINIO",
+        "EXAMES MEDICOS", // (se vinculados à equipe operacional)
+      
+        // ===== MATERIAIS/REFORMAS (21106) =====
+        "MATERIAL DE REFORMAS",
+        "SERV DE REFORMAS",
+        "MATERIAL DE MANUTENCAO",
+        "SERV DE MANUTENCAO",
+      
+        // ===== TRIBUTOS SOBRE OPERAÇÕES (21107/21109) =====
+        "ISS",
+        "ISS RETIDO NA FONTE",
+        "IRRF SERVICOS",
+        "PIS",
+        "COFINS",
+        "IRPJ",
+        "CSLL",
+      
+        // ===== DESPESAS COMERCIAIS (21111) =====
+        "COMISSOES",
+        "BRINDES E PRESENTES",
+      
+        // ===== MULTAS CONTRATUAIS (21110) =====
+        "MULTAS COMPENSATORIAS POR ATRA",
+        "MULTAS CONTRATUAIS PASSIVAS",
+      
+        // ===== LICENÇAS/SOFTWARES OPERACIONAIS (21103) =====
+        "LICENCA DE USO",
+        "HOSPEDAGEM DE DOMINIO",
+        "SOFTWARES",
+      
+        // ===== PRO LABORE (21105 - se vinculado a atividades operacionais) =====
+        "PRO LABORE"
+      ];
   
       for (const transacao of this.transacoes) {
         try {
-          if (!transacao?.data || transacao.entrada === undefined || transacao.saida === undefined) continue;
+          if (!transacao?.data || transacao.entrada === undefined || transacao.saida === undefined || !transacao.nome_natureza) continue;
   
           const data = new Date(transacao.data);
           if (isNaN(data.getTime())) continue;
@@ -301,10 +706,15 @@ export class DashboardService {
           if (data.getMonth() + 1 === mes && data.getFullYear() === ano) {
             // Soma as entradas e as saídas separadamente
             totalEntradas += (Number(transacao.entrada) || 0);
-            totalSaidas += (Number(transacao.saida) || 0);
+            if (despesas.includes(transacao.nome_natureza)) { 
+              totalSaidas += (Number(transacao.saida) || 0);
+            }
+            
           } else if (data.getMonth() + 1 === (mes - 1) && data.getFullYear() === ano) {
             entradasSaldoInicial += (Number(transacao.entrada) || 0);
-            saidasSaldoInicial += (Number(transacao.saida) || 0);
+            if (despesas.includes(transacao.nome_natureza)) { 
+              saidasSaldoInicial += (Number(transacao.saida) || 0);
+            }           
           }
         } catch (error) {
           console.error('Erro ao processar transação:', error);
@@ -448,13 +858,75 @@ export class DashboardService {
   
           const data = new Date(transacao.data);
           if (isNaN(data.getTime())) continue;
+
+          const despesasNaoCustos = [
+            // ===== DESPESAS ADMINISTRATIVAS (21102) =====
+            "VIAGENS E ESTADIAS",
+            "CONDUCAO E TRANSPORTE",
+            "LANCHES E REFEICOES",
+            "CONFRATERNIZACAO",
+            "BENS DE PEQUENO VALOR",
+            "CORREIOS E MALOTES",
+            "FOTOCOPIAS E REPRODUCOES",
+            "ASSINATURAS DE JORNAIS E REVIS",
+            "EMOLUMENTOS CARTORIOS",
+            "CERTIFICADO DIGITAL",
+            "REEMBOLSOS",
+            "OUTRAS DESPESAS",
+          
+            // ===== DESPESAS GERAIS (21103) =====
+            "ALUGUEL DE IMOVEIS",
+            "ALUGUEL DE VEICULOS",
+            "ENERGIA ELETRICA",
+            "AGUA E ESGOTO",
+            "TELEFONIA FIXA",
+            "TELEFONIA MOVEL",
+            "INTERNET",
+            "CONDOMINIO",
+            "MATERIAL DE COPA E COZINHA",
+            "MATERIAL DE EXPEDIENTE",
+            "MATERIAL DE HIGIENE E LIMPEZA",
+          
+            // ===== DESPESAS COM PESSOAL (21104 - não alocadas a produção) =====
+            "VALE REFEICAO ALIMENTACAO",
+            "ASSISTENCIA MEDICA",
+            "ASSISTENCIA ODONTOLOGICA",
+            "SEGURO DE VIDA EM GRUPO",
+            "AUXILIO CRECHE",
+            "AUXILIO EDUCACAO",
+            "PREVIDENCIA PRIVADA",
+            "BOLSA DE ESTAGIARIOS",
+            "VALE TRANSPORTE",
+          
+            // ===== DESPESAS COM DIRIGENTES (21105) =====
+            "LUCRO DISTRIBUIDO - CARLOS HEN",
+            "LUCRO DISTRIBUIDO - MATEUS MAC",
+            "ADIANT. DE LUCRO - CARLOS HENR",
+            "ADIANT. DE LUCRO - MATEUS MACI",
+            "LUCRO DISTRIBUIDO - MANOEL VIR",
+            "ADIANT. DE LUCRO - MANOEL VIRG",
+          
+            // ===== TRIBUTOS NÃO OPERACIONAIS (21107/21108/21109) =====
+            "IPTU IMP PREDIAL TERRIT URBANO",
+            "TAXAS DE BOMBEIRO",
+            "ALVARA DE LOCALIZACAO",
+          
+            // ===== DESPESAS FINANCEIRAS (21201) =====
+            "DESPESAS DE JUROS",
+          
+            // ===== DESPESAS NÃO OPERACIONAIS (299) =====
+            "INDENIZACOES PAGAS"
+          ];
   
           if (data.getMonth() + 1 === mes && data.getFullYear() === ano) {
             const nomeNatureza = transacao.nome_natureza;
-            const valorSaida = Number(transacao.saida) || 0;
+            if(despesasNaoCustos.includes(nomeNatureza)) {
+              const valorSaida = Number(transacao.saida) || 0;
   
-            // Soma os valores de despesas com o mesmo nome_natureza
-            despesasAgrupadas[nomeNatureza] = (despesasAgrupadas[nomeNatureza] || 0) + valorSaida;
+              // Soma os valores de despesas com o mesmo nome_natureza
+              despesasAgrupadas[nomeNatureza] = (despesasAgrupadas[nomeNatureza] || 0) + valorSaida;
+            }
+            
           }
         } catch (error) {
           console.error('Erro ao processar transação:', error);
@@ -472,7 +944,7 @@ export class DashboardService {
     });
   }
 
-  obterLucroDetalhado(mes: number, ano: number): Observable<{ nomeNatureza: string, valor: number }[]> {
+  obterCustosDetalhadas(mes: number, ano: number): Observable<{ nomeNatureza: string, valor: number }[]> {
     return new Observable(observer => {
       if (!this.transacoes?.length) {
         console.warn('Nenhuma transação disponível');
@@ -496,21 +968,83 @@ export class DashboardService {
       }
   
       // Objeto para armazenar despesas agrupadas por nome_natureza
-      const receitaAgrupada: { [key: string]: number } = {};
+      const custosAgrupados: { [key: string]: number } = {};
   
       for (const transacao of this.transacoes) {
         try {
-          if (!transacao?.data || transacao.entrada === undefined || transacao.saida === undefined || !transacao.nome_natureza) continue;
+          if (!transacao?.data || !transacao.saida || !transacao.nome_natureza) continue;
   
           const data = new Date(transacao.data);
           if (isNaN(data.getTime())) continue;
-  
+
+          const custos = [
+            // ===== SERVIÇOS PRESTADOS (21101) =====
+            "AUDITORIA",
+            "CONSULTORIA",
+            "ASSESSORIA JURIDICA",
+            "ASSESSORIA CONTABIL",
+            "SERVICOS INFORMATICA",
+            "SERVICOS SEGURANCA",
+            "SERVICOS LIMPEZA E CONSERVACAO",
+            "SERVICOS SEGURANCA DO TRABALHO",
+            "SERVICOS GRAFICOS",
+            "SERVICOS DE ENTREGA",
+            "FRETES E CARRETOS",
+            "SERVICOS DE PUBLICIDADE E PROP",
+            "SERVICO DE DIVULGACAO",
+            "SERVICO FORNECIMENTO DE DADOS",
+            "SERVICOS DEDETIZACAO",
+          
+            // ===== MÃO DE OBRA DIRETA (21104) =====
+            "SALARIOS E ORDENADOS",
+            "HORA EXTRA 50%",
+            "HORA EXTRA 100%",
+            "COMISSOES",
+            "FARDAMENTO",
+            "ALUGUEL DE IMOVEIS",
+            "CONDOMINIO",
+            "EXAMES MEDICOS", // (se vinculados à equipe operacional)
+          
+            // ===== MATERIAIS/REFORMAS (21106) =====
+            "MATERIAL DE REFORMAS",
+            "SERV DE REFORMAS",
+            "MATERIAL DE MANUTENCAO",
+            "SERV DE MANUTENCAO",
+          
+            // ===== TRIBUTOS SOBRE OPERAÇÕES (21107/21109) =====
+            "ISS",
+            "ISS RETIDO NA FONTE",
+            "IRRF SERVICOS",
+            "PIS",
+            "COFINS",
+            "IRPJ",
+            "CSLL",
+          
+            // ===== DESPESAS COMERCIAIS (21111) =====
+            "COMISSOES",
+            "BRINDES E PRESENTES",
+          
+            // ===== MULTAS CONTRATUAIS (21110) =====
+            "MULTAS COMPENSATORIAS POR ATRA",
+            "MULTAS CONTRATUAIS PASSIVAS",
+          
+            // ===== LICENÇAS/SOFTWARES OPERACIONAIS (21103) =====
+            "LICENCA DE USO",
+            "HOSPEDAGEM DE DOMINIO",
+            "SOFTWARES",
+          
+            // ===== PRO LABORE (21105 - se vinculado a atividades operacionais) =====
+            "PRO LABORE"
+          ];
           if (data.getMonth() + 1 === mes && data.getFullYear() === ano) {
             const nomeNatureza = transacao.nome_natureza;
-            const valorSaida = (Number(transacao.entrada) || 0) - (Number(transacao.saida) || 0);;
+            if(custos.includes(nomeNatureza)) {
+              const valorSaida = Number(transacao.saida) || 0;
   
-            // Soma os valores de despesas com o mesmo nome_natureza
-            receitaAgrupada[nomeNatureza] = (receitaAgrupada[nomeNatureza] || 0) + valorSaida;
+              // Soma os valores de despesas com o mesmo nome_natureza
+              custosAgrupados[nomeNatureza] = (custosAgrupados[nomeNatureza] || 0) + valorSaida;
+            }
+            
           }
         } catch (error) {
           console.error('Erro ao processar transação:', error);
@@ -518,12 +1052,189 @@ export class DashboardService {
       }
   
       // Converte o objeto agrupado para um array de objetos e emite o resultado
-      const resultado = Object.keys(receitaAgrupada).map(nomeNatureza => ({
+      const resultado = Object.keys(custosAgrupados).map(nomeNatureza => ({
         nomeNatureza,
-        valor: parseFloat(receitaAgrupada[nomeNatureza].toFixed(2)) // Formata para 2 casas decimais
+        valor: parseFloat(custosAgrupados[nomeNatureza].toFixed(2)) // Formata para 2 casas decimais
       }));
   
       observer.next(resultado);
+      observer.complete();
+    });
+  }
+
+
+  obterLucroDetalhado(mes: number, ano: number): Observable<{ nomeNatureza: string, valor: number }[]> {
+    return new Observable(observer => {
+      // Validações iniciais (mantidas do original)
+      if (!this.transacoes?.length) {
+        observer.next([]);
+        observer.complete();
+        return;
+      }
+  
+      if (mes < 1 || mes > 12 || isNaN(mes) || 
+          ano < 2000 || ano > new Date().getFullYear() + 1 || isNaN(ano)) {
+        observer.next([]);
+        observer.complete();
+        return;
+      }
+  
+      const resultado: { [key: string]: { receita: number, despesa: number } } = {};
+  
+      for (const transacao of this.transacoes) {
+        try {
+          if (!transacao?.data || !transacao.nome_natureza) continue;
+
+          const despesas = [
+            // ===== DESPESAS ADMINISTRATIVAS (21102) =====
+            "VIAGENS E ESTADIAS",
+            "CONDUCAO E TRANSPORTE",
+            "LANCHES E REFEICOES",
+            "CONFRATERNIZACAO",
+            "BENS DE PEQUENO VALOR",
+            "CORREIOS E MALOTES",
+            "FOTOCOPIAS E REPRODUCOES",
+            "ASSINATURAS DE JORNAIS E REVIS",
+            "EMOLUMENTOS CARTORIOS",
+            "CERTIFICADO DIGITAL",
+            "REEMBOLSOS",
+            "OUTRAS DESPESAS",
+          
+            // ===== DESPESAS GERAIS (21103) =====
+            "ALUGUEL DE IMOVEIS",
+            "ALUGUEL DE VEICULOS",
+            "ENERGIA ELETRICA",
+            "AGUA E ESGOTO",
+            "TELEFONIA FIXA",
+            "TELEFONIA MOVEL",
+            "INTERNET",
+            "CONDOMINIO",
+            "MATERIAL DE COPA E COZINHA",
+            "MATERIAL DE EXPEDIENTE",
+            "MATERIAL DE HIGIENE E LIMPEZA",
+          
+            // ===== DESPESAS COM PESSOAL (21104 - não alocadas a produção) =====
+            "VALE REFEICAO ALIMENTACAO",
+            "ASSISTENCIA MEDICA",
+            "ASSISTENCIA ODONTOLOGICA",
+            "SEGURO DE VIDA EM GRUPO",
+            "AUXILIO CRECHE",
+            "AUXILIO EDUCACAO",
+            "PREVIDENCIA PRIVADA",
+            "BOLSA DE ESTAGIARIOS",
+            "VALE TRANSPORTE",
+          
+            // ===== DESPESAS COM DIRIGENTES (21105) =====
+            "LUCRO DISTRIBUIDO - CARLOS HEN",
+            "LUCRO DISTRIBUIDO - MATEUS MAC",
+            "ADIANT. DE LUCRO - CARLOS HENR",
+            "ADIANT. DE LUCRO - MATEUS MACI",
+            "LUCRO DISTRIBUIDO - MANOEL VIR",
+            "ADIANT. DE LUCRO - MANOEL VIRG",
+          
+            // ===== TRIBUTOS NÃO OPERACIONAIS (21107/21108/21109) =====
+            "IPTU IMP PREDIAL TERRIT URBANO",
+            "TAXAS DE BOMBEIRO",
+            "ALVARA DE LOCALIZACAO",
+          
+            // ===== DESPESAS FINANCEIRAS (21201) =====
+            "DESPESAS DE JUROS",
+          
+            // ===== DESPESAS NÃO OPERACIONAIS (299) =====
+            "INDENIZACOES PAGAS",
+    
+            // ===== SERVIÇOS PRESTADOS (21101) =====
+            "AUDITORIA",
+            "CONSULTORIA",
+            "ASSESSORIA JURIDICA",
+            "ASSESSORIA CONTABIL",
+            "SERVICOS INFORMATICA",
+            "SERVICOS SEGURANCA",
+            "SERVICOS LIMPEZA E CONSERVACAO",
+            "SERVICOS SEGURANCA DO TRABALHO",
+            "SERVICOS GRAFICOS",
+            "SERVICOS DE ENTREGA",
+            "FRETES E CARRETOS",
+            "SERVICOS DE PUBLICIDADE E PROP",
+            "SERVICO DE DIVULGACAO",
+            "SERVICO FORNECIMENTO DE DADOS",
+            "SERVICOS DEDETIZACAO",
+          
+            // ===== MÃO DE OBRA DIRETA (21104) =====
+            "SALARIOS E ORDENADOS",
+            "HORA EXTRA 50%",
+            "HORA EXTRA 100%",
+            "COMISSOES",
+            "FARDAMENTO",
+            "ALUGUEL DE IMOVEIS",
+            "CONDOMINIO",
+            "EXAMES MEDICOS", // (se vinculados à equipe operacional)
+          
+            // ===== MATERIAIS/REFORMAS (21106) =====
+            "MATERIAL DE REFORMAS",
+            "SERV DE REFORMAS",
+            "MATERIAL DE MANUTENCAO",
+            "SERV DE MANUTENCAO",
+          
+            // ===== TRIBUTOS SOBRE OPERAÇÕES (21107/21109) =====
+            "ISS",
+            "ISS RETIDO NA FONTE",
+            "IRRF SERVICOS",
+            "PIS",
+            "COFINS",
+            "IRPJ",
+            "CSLL",
+          
+            // ===== DESPESAS COMERCIAIS (21111) =====
+            "COMISSOES",
+            "BRINDES E PRESENTES",
+          
+            // ===== MULTAS CONTRATUAIS (21110) =====
+            "MULTAS COMPENSATORIAS POR ATRA",
+            "MULTAS CONTRATUAIS PASSIVAS",
+          
+            // ===== LICENÇAS/SOFTWARES OPERACIONAIS (21103) =====
+            "LICENCA DE USO",
+            "HOSPEDAGEM DE DOMINIO",
+            "SOFTWARES",
+          
+            // ===== PRO LABORE (21105 - se vinculado a atividades operacionais) =====
+            "PRO LABORE"
+          ];
+  
+          const data = new Date(transacao.data);
+          if (isNaN(data.getTime()) || 
+              data.getMonth() + 1 !== mes || 
+              data.getFullYear() !== ano) continue;
+  
+          const nomeNatureza = transacao.nome_natureza;
+          const entrada = Number(transacao.entrada) || 0;
+          let saida = 0
+          if (despesas.includes(nomeNatureza)) {
+            saida = Number(transacao.saida) || 0;
+          }
+         
+  
+          // Inicializa se não existir
+          if (!resultado[nomeNatureza]) {
+            resultado[nomeNatureza] = { receita: 0, despesa: 0 };
+          }
+  
+          // Acumula valores corretamente
+          resultado[nomeNatureza].receita += entrada;
+          resultado[nomeNatureza].despesa += saida;
+        } catch (error) {
+          console.error('Erro ao processar transação:', error);
+        }
+      }
+  
+      // Calcula o lucro (receita - despesa) para cada natureza
+      const lucroDetalhado = Object.keys(resultado).map(nomeNatureza => ({
+        nomeNatureza,
+        valor: parseFloat((resultado[nomeNatureza].receita - resultado[nomeNatureza].despesa).toFixed(2))
+      }));
+  
+      observer.next(lucroDetalhado);
       observer.complete();
     });
   }

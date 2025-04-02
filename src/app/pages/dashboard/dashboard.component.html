@@ -7,8 +7,10 @@
     
                 <div class="filter-container">
                     <span>Filtro por Mês:</span>
-                    <p-datepicker  styleClass="datepicker" [minDate]="primeiraDataDisponivel" [maxDate]="ultimaDataDisponivel"  size="large" [showIcon]="true" [(ngModel)]="date" (ngModelChange)="onDateChange($event)" view="month" dateFormat="mm/yy" [readonlyInput]="true"  
+                    <p-datepicker  styleClass="datepicker" [minDate]="primeiraDataDisponivel" [maxDate]="ultimaDataDisponivel"   [showIcon]="true" [(ngModel)]="date" (ngModelChange)="onDateChange($event)" view="month" dateFormat="mm/yy" [readonlyInput]="true"  
                     [inputStyle]="{ 
+                        'width': '100px',
+                        'text-align': 'center',
                         'padding': '7px', 
                         'font-size': '16px', 
                         'border': '1px solid #ccc'
@@ -37,8 +39,14 @@
                 </li>
                 <li class="card">
                     <h4>Despesas</h4>
-                    <p [ngClass]="{ 'positive-value': !despensasMesSelecionado.includes('-'), 'negative-value': despensasMesSelecionado.includes('-') }">
+                    <p class="negative-value">
                         {{despensasMesSelecionado}}
+                    </p>
+                </li>
+                <li class="card">
+                    <h4>Custos</h4>
+                    <p class="negative-value">
+                        {{custosMesSelecionado}}
                     </p>
                 </li>
             </ul>
@@ -57,12 +65,19 @@
             </div>
     
             <div class="group-2">
-               
-    
-                <div class="chart-box">
-                    <h3>Despesas Mensais</h3>
-                    <p-chart type="doughnut" class="chart-business" [data]="despesasData" [options]="doughnutOptions" />
+                <div class="divide">
+                    <div class="chart-box">
+                        <h3>Despesas Mensais</h3>
+                        <p-chart type="doughnut"  class="chart-business" [data]="despesasData" [options]="doughnutOptions2" />
+                    </div>
+
+                    <div class="chart-box">
+                        <h3>Custos Mensais</h3>
+                        <p-chart type="doughnut" class="chart-business" [data]="custoMensalData" [options]="doughnutOptions2" />
+                    </div>
                 </div>
+    
+                
                 <div class="chart-box">
                     <h3>Lucro e Prejuizo Mensal</h3>
                     <p-chart type="bar" class="chart-business customer-expenses" [data]="lucroMensalData"  />
